@@ -2,7 +2,7 @@
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
-<title>Registo de Animais</title>
+<title>Comidinha Boa 🐾</title>
 <link rel="stylesheet" href="comedouro.css">
 </head>
 
@@ -42,73 +42,77 @@
 </div>
 
 <script type="module">
-
-// ===== FIREBASE =====
+/* ================= FIREBASE ================= */
 import { initializeApp }
   from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
 import { getDatabase, ref, set, onValue }
   from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBT8BBXiJstjYm2AJIK7Zm6Avm4iXgDnFs",
-    authDomain: "projeto-81763.firebaseapp.com",
-    databaseURL: "https://projeto-81763-default-rtdb.firebaseio.com/",
-    projectId: "projeto-81763",
-    storageBucket: "projeto-81763.firebasestorage.app",
-    messagingSenderId: "953749889342",
-    appId: "1:953749889342:web:15f789ec73a06063c90c6f"
+  apiKey: "AIzaSyBT8BBXiJstjYm2AJIK7Zm6Avm4iXgDnFs",
+  authDomain: "projeto-81763.firebaseapp.com",
+  databaseURL: "https://projeto-81763-default-rtdb.firebaseio.com/",
+  projectId: "projeto-81763",
+  storageBucket: "projeto-81763.firebasestorage.app",
+  messagingSenderId: "953749889342",
+  appId: "1:953749889342:web:15f789ec73a06063c90c6f"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// ===== REFERÊNCIA DO ÚLTIMO ANIMAL =====
+/* ========= REFERÊNCIA DO ÚLTIMO ANIMAL ========= */
 const ultimoRef = ref(db, "ultimoAnimal");
 
-// Atualiza a interface automaticamente
+/* Atualiza automaticamente */
 onValue(ultimoRef, (snapshot) => {
-    const data = snapshot.val();
-    if (!data) return;
+  const data = snapshot.val();
+  if (!data) return;
 
-    document.getElementById("last_nome").innerText = data.nome;
-    document.getElementById("last_tipo").innerText = data.tipo;
-    document.getElementById("last_hora").innerText = data.hora;
+  document.getElementById("last_nome").innerText = data.nome;
+  document.getElementById("last_tipo").innerText = data.tipo;
+  document.getElementById("last_hora").innerText = data.hora;
 });
 
-// ===== GUARDAR ANIMAL =====
-window.guardarAnimal = function() {
-    const tipo = document.getElementById("tipo").value;
-    const nome = document.getElementById("nome").value;
+/* ========= GUARDAR ANIMAL ========= */
+window.guardarAnimal = function () {
+  const tipo = document.getElementById("tipo").value;
+  const nome = document.getElementById("nome").value;
 
-    if (!nome) {
-        alert("Escreve o nome do animal!");
-        return;
-    }
+  if (!nome) {
+    alert("Escreve o nome do animal!");
+    return;
+  }
 
-    const hora = new Date().toLocaleString("pt-PT");
+  const hora = new Date().toLocaleString("pt-PT");
 
-    set(ref(db, "ultimoAnimal"), {
-        nome: nome,
-        tipo: tipo,
-        hora: hora
+  set(ref(db, "ultimoAnimal"), {
+    nome: nome,
+    tipo: tipo,
+    hora: hora
+  });
+
+  alert("Animal guardado com sucesso!");
+};
+
+/* ========= CHAMAR ESP8266 ========= */
+window.liberarComida = function () {
+  document.getElementById("feedStatus").innerText = "A enviar comando...";
+
+  fetch("http://192.168.4.1/liberar")
+    .then(() => {
+        const hora = new Date().toLocaleString("pt-PT");
+
+set(ref(db, "ultimaAlimentacao"), {
+  hora: hora
+});
+
+      document.getElementById("feedStatus").innerText = "✅ Comida libertada";
+    })
+    .catch(() => {
+      document.getElementById("feedStatus").innerText = "❌ ESP não respondeu";
     });
-
-    alert("Animal guardado com sucesso!");
-}
-
-// ===== CHAMAR ESP8266 =====
-window.liberarComida = function() {
-    document.getElementById("feedStatus").innerText = "A enviar comando...";
-
-    fetch("http://192.168.4.1/liberar")
-      .then(() => {
-        document.getElementById("feedStatus").innerText = "✅ Comida libertada";
-      })
-      .catch(() => {
-        document.getElementById("feedStatus").innerText = "❌ ESP não respondeu";
-      });
-}
-
+};
 </script>
 
 </body>
