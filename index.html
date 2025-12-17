@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<title>Registo de Animais</title>
+<link rel="stylesheet" href="comedouro.css">
+</head>
+
+<body>
+
+<h2>🐾 Sistema de Alimentação de Animais</h2>
+
+<!-- REGISTO -->
+<div class="card">
+    <h3>➕ Registar animal</h3>
+
+    <label>Tipo de Animal</label><br>
+    <select id="tipo">
+        <option value="Cão">🐶 Cão</option>
+        <option value="Gato">🐱 Gato</option>
+    </select><br>
+
+    <label>Nome do Animal</label><br>
+    <input type="text" id="nome" placeholder="Escreve o nome"><br>
+
+    <button onclick="guardarAnimal()">Guardar no Firebase</button>
+</div>
+
+<!-- ÚLTIMO REGISTO -->
+<div class="card">
+    <h3>📡 Último animal registado</h3>
+    <p><b>Nome:</b> <span id="last_nome">—</span></p>
+    <p><b>Tipo:</b> <span id="last_tipo">—</span></p>
+    <p><b>Hora:</b> <span id="last_hora">—</span></p>
+</div>
+
+<!-- ALIMENTADOR -->
+<div class="card">
+    <h3>🍽️ Alimentador</h3>
+    <button onclick="liberarComida()">Libertar comida</button>
+    <p id="feedStatus"></p>
+</div>
+
+<script type="module">
+
+// ===== FIREBASE =====
+import { initializeApp }
+  from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+import { getDatabase, ref, set, onValue }
+  from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyBT8BBXiJstjYm2AJIK7Zm6Avm4iXgDnFs",
+    authDomain: "projeto-81763.firebaseapp.com",
+    databaseURL: "https://projeto-81763-default-rtdb.firebaseio.com/",
+    projectId: "projeto-81763",
+    storageBucket: "projeto-81763.firebasestorage.app",
+    messagingSenderId: "953749889342",
+    appId: "1:953749889342:web:15f789ec73a06063c90c6f"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// ===== REFERÊNCIA DO ÚLTIMO ANIMAL =====
+const ultimoRef = ref(db, "ultimoAnimal");
+
+// Atualiza a interface automaticamente
+onValue(ultimoRef, (snapshot) => {
+    const data = snapshot.val();
+    if (!data) return;
+
+    document.getElementById("last_nome").innerText = data.nome;
+    document.getElementById("last_tipo").innerText = data.tipo;
+    document.getElementById("last_hora").innerText = data.hora;
+});
+
+// ===== GUARDAR ANIMAL =====
+window.guardarAnimal = function() {
+    const tipo = document.getElementById("tipo").value;
+    const nome = document.getElementById("nome").value;
+
+    if (!nome) {
+        alert("Escreve o nome do animal!");
+        return;
+    }
+
+    const hora = new Date().toLocaleString("pt-PT");
+
+    set(ref(db, "ultimoAnimal"), {
+        nome: nome,
+        tipo: tipo,
+        hora: hora
+    });
+
+    alert("Animal guardado com sucesso!");
+}
+
+// ===== CHAMAR ESP8266 =====
+window.liberarComida = function() {
+    document.getElementById("feedStatus").innerText = "A enviar comando...";
+
+    fetch("http://192.168.4.1/liberar")
+      .then(() => {
+        document.getElementById("feedStatus").innerText = "✅ Comida libertada";
+      })
+      .catch(() => {
+        document.getElementById("feedStatus").innerText = "❌ ESP não respondeu";
+      });
+}
+
+</script>
+
+</body>
+</html>
